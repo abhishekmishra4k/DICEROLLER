@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Die</title>
+    <style>
+      body {
+        min-height: 100vh;
+        margin: 0;
+        font-family: "Segoe UI", Arial, sans-serif;
+        background: linear-gradient(135deg, #232526 0%, #414345 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        position: relative;
+      }
+
+      /* Animated Die Background */
+      .die-bg {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 400px;
+        height: 400px;
+        transform: translate(-50%, -50%);
+        opacity: 0.15;
+        z-index: 0;
+        animation: rotateDie 10s linear infinite;
+        pointer-events: none;
+      }
+
+      @keyframes rotateDie {
+        0% {
+          transform: translate(-50%, -50%) rotate(0deg) scale(1);
+        }
+        50% {
+          transform: translate(-50%, -50%) rotate(180deg) scale(1.05);
+        }
+        100% {
+          transform: translate(-50%, -50%) rotate(360deg) scale(1);
+        }
+      }
+
+      .container {
+        position: relative;
+        z-index: 1;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 24px;
+        box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+        backdrop-filter: blur(8px);
+        padding: 48px 32px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+
+      h1 {
+        color: #fff;
+        letter-spacing: 2px;
+        font-size: 2.5rem;
+        margin-bottom: 32px;
+        text-shadow: 0 2px 8px #0006;
+      }
+
+      input[type="number"] {
+        padding: 12px 16px;
+        border-radius: 8px;
+        border: none;
+        font-size: 1.1rem;
+        margin-bottom: 20px;
+        outline: none;
+        background: rgba(255, 255, 255, 0.2);
+        color: #fff;
+        box-shadow: 0 2px 8px #0002;
+        transition: background 0.2s;
+      }
+      input[type="number"]:focus {
+        background: rgba(255, 255, 255, 0.35);
+      }
+
+      /* Remove number input arrows (spinners) */
+      input[type="number"]::-webkit-inner-spin-button,
+      input[type="number"]::-webkit-outer-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+      }
+      input[type="number"] {
+        -moz-appearance: textfield;
+        appearance: textfield;
+      }
+
+      button {
+        padding: 12px 32px;
+        border-radius: 8px;
+        border: none;
+        background: linear-gradient(90deg, #ff512f 0%, #dd2476 100%);
+        color: #fff;
+        font-size: 1.1rem;
+        font-weight: bold;
+        cursor: pointer;
+        box-shadow: 0 2px 8px #0002;
+        transition: background 0.2s, transform 0.2s;
+      }
+      button:hover {
+        background: linear-gradient(90deg, #dd2476 0%, #ff512f 100%);
+        transform: scale(1.05);
+      }
+
+      /* Modal Styles */
+      .backdrop {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.7);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+      }
+
+      .modal {
+        background: #fff;
+        border-radius: 12px;
+        padding: 32px;
+        max-width: 400px;
+        width: 100%;
+        text-align: center;
+        position: relative;
+      }
+
+      .close-btn {
+        background: #ff3b3b;
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        padding: 10px 20px;
+        cursor: pointer;
+        font-size: 1rem;
+        transition: background 0.2s;
+      }
+      .close-btn:hover {
+        background: #e63939;
+      }
+
+      .result-message {
+        font-size: 1.5rem;
+        margin: 20px 0;
+        color: #232526;
+      }
+
+      /* Confetti Animation */
+      @keyframes confettiFall {
+        0% {
+          transform: translateY(-100%);
+        }
+        100% {
+          transform: translateY(100vh);
+        }
+      }
+
+      .confetti {
+        position: absolute;
+        top: 0;
+        left: 50%;
+        width: 10px;
+        height: 10px;
+        background: #ffeb3b;
+        opacity: 0.9;
+        animation: confettiFall 3s infinite;
+      }
+
+      .cross {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+      }
+
+      /* Loading modal styles */
+      .loading-modal {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        background: #fff;
+        border-radius: 16px;
+        padding: 40px 32px;
+        min-width: 320px;
+        min-height: 220px;
+        box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+        position: relative;
+        animation: popIn 0.3s;
+      }
+      .rolling-die {
+        width: 100px;
+        height: 100px;
+        margin-bottom: 24px;
+        animation: rollDie 1s linear infinite;
+      }
+      @keyframes rollDie {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+      .die-face-dot {
+        fill: #232526;
+        opacity: 1;
+      }
+      .die-face-dot.hidden {
+        opacity: 0;
+      }
+
+      /* 3D Die Styles */
+      .die-3d-container {
+        perspective: 600px;
+        width: 120px;
+        height: 120px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 24px;
+      }
+      .die-3d {
+        width: 100px;
+        height: 100px;
+        position: relative;
+        transform-style: preserve-3d;
+        transition: transform 1.2s cubic-bezier(0.23, 1.12, 0.67, 0.99);
+      }
+      .die-face {
+        position: absolute;
+        width: 100px;
+        height: 100px;
+        background: #fff;
+        border-radius: 18px;
+        box-shadow: 0 2px 12px #0002;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2.5rem;
+        color: #232526;
+        border: 3px solid #232526;
+      }
+      .die-face .dot {
+        width: 18px;
+        height: 18px;
+        background: #232526;
+        border-radius: 50%;
+        display: inline-block;
+        margin: 6px;
+      }
+      /* Position each face */
+      .die-face.front {
+        transform: rotateY(0deg) translateZ(50px);
+      }
+      .die-face.back {
+        transform: rotateY(180deg) translateZ(50px);
+      }
+      .die-face.right {
+        transform: rotateY(90deg) translateZ(50px);
+      }
+      .die-face.left {
+        transform: rotateY(-90deg) translateZ(50px);
+      }
+      .die-face.top {
+        transform: rotateX(90deg) translateZ(50px);
+      }
+      .die-face.bottom {
+        transform: rotateX(-90deg) translateZ(50px);
+      }
+      /* Rolling animation */
+      .die-3d.rolling {
+        animation: die3droll 1.2s cubic-bezier(0.23, 1.12, 0.67, 0.99);
+      }
+      @keyframes die3droll {
+        0% {
+          transform: rotateX(0deg) rotateY(0deg);
+        }
+        100% {
+          transform: rotateX(720deg) rotateY(900deg);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Animated Die SVG Background -->
+    <svg class="die-bg" viewBox="0 0 100 100">
+      <rect
+        x="10"
+        y="10"
+        width="80"
+        height="80"
+        rx="16"
+        fill="#fff"
+        fill-opacity="0.7"
+        stroke="#fff"
+        stroke-width="2"
+      />
+      <!-- Die dots -->
+      <circle cx="25" cy="25" r="6" fill="#232526" />
+      <circle cx="50" cy="50" r="6" fill="#232526" />
+      <circle cx="75" cy="75" r="6" fill="#232526" />
+      <circle cx="25" cy="75" r="6" fill="#232526" />
+      <circle cx="75" cy="25" r="6" fill="#232526" />
+    </svg>
+    <div class="container">
+      <h1>DIE ROLLER</h1>
+      <input type="number" id="dieInput" placeholder="Enter DIE NO" />
+      <button id="rollButton">Roll</button>
+    </div>
+
+    <!-- Result Modal -->
+    <div id="resultBackdrop" class="backdrop" style="display: none">
+      <div id="resultModal" class="modal">
+        <div id="confetti" style="display: none"></div>
+        <div id="resultMessage" class="result-message"></div>
+        <button id="closeModal" class="close-btn">Close</button>
+      </div>
+    </div>
+
+    <!-- Loading Modal (Hidden by default) -->
+    <div id="loadingBackdrop" class="backdrop" style="display: none">
+      <div class="loading-modal">
+        <div class="die-3d-container">
+          <div class="die-3d" id="die3d">
+            <div class="die-face front"></div>
+            <div class="die-face back"></div>
+            <div class="die-face right"></div>
+            <div class="die-face left"></div>
+            <div class="die-face top"></div>
+            <div class="die-face bottom"></div>
+          </div>
+        </div>
+        <div id="loadingText">Rolling the die...</div>
+      </div>
+    </div>
+  </body>
+  <script src="back.js"></script>
+</html>
